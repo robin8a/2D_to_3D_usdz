@@ -1,0 +1,12 @@
+# Alternative USDZ creation (no external dependencies required)
+# This implementation works without USD Core, making it compatible
+# with older macOS versions and systems without USD Core installed.
+
+# Standard Python libraries used:
+# - os, shutil, tempfile (file operations)
+# - zipfile (USDZ packaging)
+# - datetime (timestamps)
+
+# Note: The original implementation in create_usdz_scene.py requires usd-core,
+# but the alternative implementation in create_usdz_alternative.py works
+# with just standard Python libraries.

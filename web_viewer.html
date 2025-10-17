@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USDZ Scene Viewer</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .scene-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .scene-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .scene-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .scene-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .scene-title {
+            margin: 0;
+            font-size: 1.3em;
+            color: #333;
+        }
+        
+        .scene-description {
+            margin: 5px 0 0 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .model-viewer-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: #f0f0f0;
+        }
+        
+        model-viewer {
+            width: 100%;
+            height: 100%;
+            --poster-color: transparent;
+        }
+        
+        .ar-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            z-index: 10;
+        }
+        
+        .ar-button:hover {
+            background: rgba(0,0,0,0.9);
+        }
+        
+        .file-info {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .controls {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 0 10px;
+            transition: transform 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background: #e8f5e8;
+            color: #2d5a2d;
+            border: 1px solid #c3e6c3;
+        }
+        
+        .error {
+            background: #ffeaea;
+            color: #d32f2f;
+            border-color: #ffcdd2;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin: 5px 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌱 USDZ Garden Scene Viewer</h1>
+            <p>Visualize and interact with your 3D garden scenes in AR</p>
+        </div>
+        
+        <div class="content">
+            <div class="instructions">
+                <h3>📱 How to Use</h3>
+                <ul>
+                    <li><strong>Desktop:</strong> Use mouse to rotate, zoom, and pan around the 3D models</li>
+                    <li><strong>Mobile AR:</strong> Tap the AR button to view models in augmented reality</li>
+                    <li><strong>Supported formats:</strong> USDZ files for AR, GLB/GLTF for web viewing</li>
+                    <li><strong>AR Requirements:</strong> ARCore-supported Android device or iOS with ARKit</li>
+                </ul>
+            </div>
+            
+            <div class="controls">
+                <button class="btn" onclick="loadScenes()">🔄 Refresh Scenes</button>
+                <button class="btn" onclick="createNewScene()">➕ Create New Scene</button>
+            </div>
+            
+            <div id="status" class="status">
+                Ready to load scenes. Click "Refresh Scenes" to load available USDZ files.
+            </div>
+            
+            <div id="scenes-container" class="scene-grid">
+                <div class="loading">
+                    <p>No scenes loaded yet. Click "Refresh Scenes" to get started.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Available scenes configuration
+        const availableScenes = [
+            {
+                id: 'basic',
+                title: 'Basic Garden Scene',
+                description: 'A simple garden with ground plane, rock, and tree',
+                usdzFile: 'test_alternative.usdz',
+                glbFile: null // We'll generate this if needed
+            },
+            {
+                id: 'garden',
+                title: 'Garden Scene',
+                description: 'Enhanced garden scene with multiple elements',
+                usdzFile: 'garden_scene.usdz',
+                glbFile: null
+            },
+            {
+                id: 'minimal',
+                title: 'Minimal Scene',
+                description: 'Clean minimal scene with just essential elements',
+                usdzFile: 'minimal_scene.usdz',
+                glbFile: null
+            },
+            {
+                id: 'complex',
+                title: 'Complex Scene',
+                description: 'Detailed scene with multiple objects and materials',
+                usdzFile: 'complex_scene.usdz',
+                glbFile: null
+            }
+        ];
+
+        function updateStatus(message, isError = false) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = isError ? 'status error' : 'status';
+        }
+
+        function createSceneCard(scene) {
+            return `
+                <div class="scene-card">
+                    <div class="scene-header">
+                        <h3 class="scene-title">${scene.title}</h3>
+                        <p class="scene-description">${scene.description}</p>
+                    </div>
+                    <div class="model-viewer-container">
+                        <model-viewer
+                            id="model-${scene.id}"
+                            src="${scene.usdzFile}"
+                            ios-src="${scene.usdzFile}"
+                            alt="${scene.description}"
+                            ar
+                            auto-rotate
+                            camera-controls
+                            shadow-intensity="1"
+                            environment-image="neutral"
+                            exposure="1"
+                            tone-mapping="aces">
+                        </model-viewer>
+                        <button class="ar-button" onclick="openInAR('${scene.id}')">
+                            📱 View in AR
+                        </button>
+                    </div>
+                    <div class="file-info">
+                        <strong>File:</strong> ${scene.usdzFile}<br>
+                        <strong>Format:</strong> USDZ (AR compatible)<br>
+                        <strong>Status:</strong> <span id="status-${scene.id}">Loading...</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadScenes() {
+            updateStatus('Loading scenes...');
+            const container = document.getElementById('scenes-container');
+            
+            // Clear existing content
+            container.innerHTML = '';
+            
+            // Create scene cards
+            availableScenes.forEach(scene => {
+                const sceneCard = document.createElement('div');
+                sceneCard.innerHTML = createSceneCard(scene);
+                container.appendChild(sceneCard.firstElementChild);
+            });
+            
+            // Check file availability
+            checkFileAvailability();
+        }
+
+        function checkFileAvailability() {
+            availableScenes.forEach(scene => {
+                const statusEl = document.getElementById(`status-${scene.id}`);
+                if (statusEl) {
+                    // Try to load the file
+                    fetch(scene.usdzFile)
+                        .then(response => {
+                            if (response.ok) {
+                                statusEl.textContent = '✅ Available';
+                                statusEl.style.color = 'green';
+                            } else {
+                                statusEl.textContent = '❌ File not found';
+                                statusEl.style.color = 'red';
+                            }
+                        })
+                        .catch(error => {
+                            statusEl.textContent = '❌ Error loading';
+                            statusEl.style.color = 'red';
+                        });
+                }
+            });
+            
+            updateStatus('Scenes loaded! Click on any model to interact with it.');
+        }
+
+        function openInAR(sceneId) {
+            const modelViewer = document.getElementById(`model-${sceneId}`);
+            if (modelViewer) {
+                modelViewer.activateAR();
+            }
+        }
+
+        function createNewScene() {
+            updateStatus('Creating new scene...');
+            
+            // This would typically make a request to your backend to create a new scene
+            // For now, we'll just show a message
+            setTimeout(() => {
+                updateStatus('To create a new scene, run: python create_usdz_alternative.py "new_scene.usdz"');
+            }, 1000);
+        }
+
+        // Initialize the viewer when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if model-viewer is loaded
+            if (customElements.get('model-viewer')) {
+                loadScenes();
+            } else {
+                updateStatus('Loading model-viewer component...', false);
+                // Wait for the component to load
+                setTimeout(() => {
+                    if (customElements.get('model-viewer')) {
+                        loadScenes();
+                    } else {
+                        updateStatus('Failed to load model-viewer component. Please refresh the page.', true);
+                    }
+                }, 2000);
+            }
+        });
+
+        // Add some interactivity
+        document.addEventListener('model-viewer-load', function(event) {
+            console.log('Model loaded:', event.target);
+        });
+
+        document.addEventListener('model-viewer-error', function(event) {
+            console.error('Model error:', event.detail);
+            updateStatus('Error loading model: ' + event.detail, true);
+        });
+    </script>
+</body>
+</html>
